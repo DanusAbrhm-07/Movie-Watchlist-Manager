@@ -2,13 +2,7 @@
 <html lang="en">
 <head>
     <title>Movie Watchlist Manager</title>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; }
-        .movie-list { list-style-type: none; padding: 0; }
-        .movie-item { background: #f4f4f4; margin: 5px 0; padding: 10px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
-        .controls form { display: inline-block; margin-left: 5px; }
-        .search-box { background: #e9ecef; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <h1>🎬 Movie Watchlist Manager</h1>
