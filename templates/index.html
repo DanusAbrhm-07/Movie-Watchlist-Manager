@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Movie Watchlist Manager</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; }
+        .movie-list { list-style-type: none; padding: 0; }
+        .movie-item { background: #f4f4f4; margin: 5px 0; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🎬 Movie Watchlist Manager</h1>
+    
+    <!-- Input Form -->
+    <form action="/add" method="POST">
+        <input type="text" name="title" placeholder="Enter movie title" required>
+        <select name="watched">
+            <option value="Yes">Watched: Yes</option>
+            <option value="No">Watched: No</option>
+        </select>
+        <button type="submit">Add Movie</button>
+    </form>
+
+    <hr>
+
+    <!-- Movie Display List -->
+    <h2>Your Watchlist</h2>
+    <ul class="movie-list">
+        {% for movie in movies %}
+            <li class="movie-item">
+                <strong>{{ movie.title }}</strong> - Watched: {{ movie.watched }}
+            </li>
+        {% else %}
+            <p>Your watchlist is currently empty.</p>
+        {% endfor %}
+    </ul>
+</body>
+</html>
