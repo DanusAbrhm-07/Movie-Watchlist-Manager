@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Movie Watchlist Manager</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; }
+        .movie-list { list-style-type: none; padding: 0; }
+        .movie-item { background: #f4f4f4; margin: 5px 0; padding: 10px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
+        .controls form { display: inline-block; margin-left: 5px; }
+        .search-box { background: #e9ecef; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h1>🎬 Movie Watchlist Manager</h1>
+    
+    <!-- Search & Filter Bar -->
+    <div class="search-box">
+        <form action="/" method="GET">
+            <input type="text" name="search" placeholder="Search titles..." value="{{ search_query }}">
+            <select name="filter">
+                <option value="All" {% if filter_status == 'All' %}selected{% endif %}>All Movies</option>
+                <option value="Yes" {% if filter_status == 'Yes' %}selected{% endif %}>Watched</option>
+                <option value="No" {% if filter_status == 'No' %}selected{% endif %}>Unwatched</option>
+            </select>
+            <button type="submit">Search / Filter</button>
+            <a href="/"><button type="button">Clear</button></a>
+        </form>
+    </div>
+
+    <!-- Input Form for Adding Movies -->
+    <form action="/add" method="POST" style="margin-bottom: 20px;">
+        <input type="text" name="title" placeholder="Enter new movie title" required>
+        <select name="watched">
+            <option value="Yes">Watched: Yes</option>
+            <option value="No" selected>Watched: No</option>
+        </select>
+        <button type="submit">Add Movie</button>
+    </form>
+
+    <hr>
+
+    <!-- Movie Display List -->
+    <h2>Your Watchlist</h2>
+    <ul class="movie-list">
+        {% for movie in movies %}
+            <li class="movie-item">
+                <span><strong>{{ movie.title }}</strong> - Watched: {{ movie.watched }}</span>
+                
+                <!-- Action Buttons -->
+                <div class="controls">
+                    <form action="/toggle/{{ movie.id }}" method="POST">
+                        <button type="submit">Mark as {{ 'No' if movie.watched == 'Yes' else 'Yes' }}</button>
+                    </form>
+                    
+                    <form action="/delete/{{ movie.id }}" method="POST">
+                        <button type="submit" style="color: red;">Delete</button>
+                    </form>
+                </div>
+            </li>
+        {% else %}
+            <p>No movies found matching your criteria.</p>
+        {% endfor %}
+    </ul>
+</body>
+</html>
