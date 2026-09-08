@@ -18,7 +18,7 @@ A Full-Stack Web Application designed to track, filter, and manage a personal mo
 
 ## Run Instructions
 1. Clone this repository to your local machine.
-2. Ensure you have Python installed.
+2. Ensure you have Python and Flask installed.
 3. Open a terminal and navigate to the project directory.
 4. Run the script using the following command:
    python main.py
