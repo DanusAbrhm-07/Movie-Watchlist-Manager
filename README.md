@@ -1,6 +1,6 @@
 # Movie-Watchlist-Manager
 
-A lightweight Command Line Interface (CLI) application to track, filter, and manage a personal movie backlog. 
+A Full-Stack Web Application designed to track, filter, and manage a personal movie backlog. 
 
 ## Features
 * Add a movie to the watchlist
@@ -13,6 +13,8 @@ A lightweight Command Line Interface (CLI) application to track, filter, and man
 ## Technologies Used
 * Python 3
 * JSON (for local data persistence)
+* Flask (for backend server-side routing and HTTP handling)
+* HTML & CSS (for the web user interface)
 
 ## Run Instructions
 1. Clone this repository to your local machine.
