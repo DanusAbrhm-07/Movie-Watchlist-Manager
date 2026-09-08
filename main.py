@@ -25,13 +25,29 @@ def save_movies(movies):
 # --- Web Routes ---
 @app.route('/')
 def index():
-    """Loads the main webpage and passes the movie list to the HTML."""
+    """Loads the main webpage and handles search and filter."""
     movies = load_movies()
-    return render_template('index.html', movies=movies)
+    
+    # Grab search and filter parameters from the web address (URL) if they exist
+    search_query = request.args.get('search', '').strip().lower()
+    filter_status = request.args.get('filter', 'All')
+    
+    # Create a list of movies that match the search and filter criteria
+    filtered_movies = []
+    for idx, movie in enumerate(movies):
+        if search_query and search_query not in movie['title'].lower():
+            continue
+        if filter_status != 'All' and movie['watched'] != filter_status:
+            continue
+            
+        # We attach the index ('id') so the HTML knows exactly which movie to delete or update
+        filtered_movies.append({'id': idx, **movie})
+
+    return render_template('index.html', movies=filtered_movies, search_query=search_query, filter_status=filter_status)
 
 @app.route('/add', methods=['POST'])
 def add_movie():
-    """Receives the form submission from HTML and saves the new movie."""
+    """Receives the form submission to add a movie."""
     title = request.form.get('title').strip()
     watched_status = request.form.get('watched')
     
@@ -40,9 +56,26 @@ def add_movie():
         movies.append({"title": title, "watched": watched_status})
         save_movies(movies)
         
-    # Refresh the page to show the updated list
+    return redirect(url_for('index'))
+
+@app.route('/delete/<int:movie_id>', methods=['POST'])
+def delete_movie(movie_id):
+    """Deletes a movie based on its position in the list."""
+    movies = load_movies()
+    if 0 <= movie_id < len(movies):
+        movies.pop(movie_id)
+        save_movies(movies)
+    return redirect(url_for('index'))
+
+@app.route('/toggle/<int:movie_id>', methods=['POST'])
+def toggle_movie(movie_id):
+    """Switches the watched status between Yes and No."""
+    movies = load_movies()
+    if 0 <= movie_id < len(movies):
+        current_status = movies[movie_id]["watched"]
+        movies[movie_id]["watched"] = "No" if current_status == "Yes" else "Yes"
+        save_movies(movies)
     return redirect(url_for('index'))
 
 if __name__ == "__main__":
-    # Runs the local web server
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False)
