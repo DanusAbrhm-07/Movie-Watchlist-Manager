@@ -36,7 +36,7 @@ def add_movie(movies):
         else:
             print("Invalid input. Enter 'y' or 'n'.")
             
-    movies.append({"Title": title, "Watched": is_watched})
+    movies.append({"title": title, "watched": is_watched})
     save_movies(movies)
     print(f"'{title}' added successfully!")
 
@@ -45,8 +45,70 @@ def view_movies(movies):
         print("Your watchlist is empty.")
         return
     print("\n--- All Movies ---")
-    # Converts the Python list back into a formatted JSON string for display
     print(json.dumps(movies, indent=4))
+
+def search_movies(movies):
+    search_term = input("Enter title to search: ").strip().lower()
+    results = [m for m in movies if search_term in m["title"].lower()]
+    if results:
+        print(json.dumps(results, indent=4))
+    else:
+        print("No matching movies found.")
+
+def mark_watched(movies):
+    if not movies:
+        print("Your watchlist is empty.")
+        return
+    print("\nSelect a movie:")
+    for i, m in enumerate(movies):
+        print(f"{i + 1}. {m['title']}")
+        
+    try:
+        index = int(input("\nEnter the number to mark as watched: ")) - 1
+        if 0 <= index < len(movies):
+            if movies[index]["watched"] == "Yes":
+                print("Movie is already marked as watched.")
+            else:
+                movies[index]["watched"] = "Yes"
+                save_movies(movies)
+                print("Marked as watched!")
+        else:
+            print("Error: Invalid movie number.")
+    except ValueError:
+        print("Error: Please enter a valid number.")
+
+def remove_movie(movies):
+    if not movies:
+        print("Your watchlist is empty.")
+        return
+    print("\nSelect a movie:")
+    for i, m in enumerate(movies):
+        print(f"{i + 1}. {m['title']}")
+        
+    try:
+        index = int(input("\nEnter the number to remove: ")) - 1
+        if 0 <= index < len(movies):
+            removed = movies.pop(index)
+            save_movies(movies)
+            print(f"Removed '{removed['title']}'.")
+        else:
+            print("Error: Invalid movie number.")
+    except ValueError:
+        print("Error: Please enter a valid number.")
+
+def filter_movies(movies):
+    filter_choice = input("Show (1) Watched or (2) Unwatched? ").strip()
+    if filter_choice not in ['1', '2']:
+        print("Error: Invalid choice.")
+        return
+        
+    target_status = "Yes" if filter_choice == '1' else "No"
+    filtered = [m for m in movies if m["watched"] == target_status]
+    
+    if not filtered:
+        print("No movies found for this category.")
+    else:
+        print(json.dumps(filtered, indent=4))
 
 def main():
     movies = load_movies()
@@ -61,12 +123,19 @@ def main():
             add_movie(movies)
         elif choice == '2':
             view_movies(movies)
+        elif choice == '3':
+            search_movies(movies)
+        elif choice == '4':
+            mark_watched(movies)
+        elif choice == '5':
+            remove_movie(movies)
+        elif choice == '6':
+            filter_movies(movies)
         elif choice == '7':
             print("Goodbye!")
             break
         else:
-            print("Feature under development.")
+            print("Invalid option. Please choose a number from 1 to 7.")
 
 if __name__ == "__main__":
     main()
-
