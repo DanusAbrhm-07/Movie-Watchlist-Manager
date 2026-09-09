@@ -70,7 +70,7 @@ def add_movie():
             pass 
         conn.close()
         
-    return redirect(url_for('index'))
+    return redirect(request.referrer or url_for('index'))
 
 @app.route('/delete/<int:movie_id>', methods=['POST'])
 def delete_movie(movie_id):
@@ -79,7 +79,7 @@ def delete_movie(movie_id):
     conn.execute("DELETE FROM movies WHERE id = ?", (movie_id,))
     conn.commit()
     conn.close()
-    return redirect(url_for('index'))
+    return redirect(request.referrer or url_for('index'))
 
 @app.route('/toggle/<int:movie_id>', methods=['POST'])
 def toggle_movie(movie_id):
@@ -93,7 +93,7 @@ def toggle_movie(movie_id):
         conn.commit()
         
     conn.close()
-    return redirect(url_for('index'))
+    return redirect(request.referrer or url_for('index'))
 
 if __name__ == "__main__":
     init_db() # Ensure the database and tables are created before the server starts
