@@ -1,81 +1,100 @@
 from flask import Flask, render_template, request, redirect, url_for
-import json
-import os
+import sqlite3
 
 app = Flask(__name__)
-FILE_NAME = "movies.json"
+DB_NAME = "movies.db"
 
-# --- Core Data Functions ---
-def load_movies():
-    if os.path.exists(FILE_NAME):
-        try:
-            with open(FILE_NAME, 'r') as file:
-                return json.load(file)
-        except (json.JSONDecodeError, IOError):
-            return []
-    return []
+# --- Database Setup ---
+def init_db():
+    """Creates the database and table if they don't exist."""
+    conn = sqlite3.connect(DB_NAME)
+    # The UNIQUE constraint on 'title' automatically prevents duplicates
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS movies (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL UNIQUE,
+            watched TEXT NOT NULL
+        )
+    ''')
+    conn.commit()
+    conn.close()
 
-def save_movies(movies):
-    try:
-        with open(FILE_NAME, 'w') as file:
-            json.dump(movies, file, indent=4)
-    except IOError:
-        print("Error: Could not save to disk.")
+def get_db_connection():
+    """Opens a database connection."""
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row # Allows us to treat rows like dictionaries for the HTML
+    return conn
 
 # --- Web Routes ---
 @app.route('/')
 def index():
-    """Loads the main webpage and handles search and filter."""
-    movies = load_movies()
-    
-    # Grab search and filter parameters from the web address (URL) if they exist
+    """Loads the main webpage and handles search and filter via SQL."""
     search_query = request.args.get('search', '').strip().lower()
     filter_status = request.args.get('filter', 'All')
     
-    # Create a list of movies that match the search and filter criteria
-    filtered_movies = []
-    for idx, movie in enumerate(movies):
-        if search_query and search_query not in movie['title'].lower():
-            continue
-        if filter_status != 'All' and movie['watched'] != filter_status:
-            continue
-            
-        # We attach the index ('id') so the HTML knows exactly which movie to delete or update
-        filtered_movies.append({'id': idx, **movie})
-
+    conn = get_db_connection()
+    
+    # Base query
+    query = "SELECT * FROM movies WHERE 1=1"
+    params = []
+    
+    # Dynamically append SQL conditions based on user input
+    if search_query:
+        query += " AND LOWER(title) LIKE ?"
+        params.append(f"%{search_query}%")
+        
+    if filter_status != 'All':
+        query += " AND watched = ?"
+        params.append(filter_status)
+        
+    # Fetch results and convert to standard dictionaries for Jinja HTML rendering
+    rows = conn.execute(query, params).fetchall()
+    filtered_movies = [dict(row) for row in rows]
+    
+    conn.close()
     return render_template('index.html', movies=filtered_movies, search_query=search_query, filter_status=filter_status)
 
 @app.route('/add', methods=['POST'])
 def add_movie():
-    """Receives the form submission to add a movie."""
-    title = request.form.get('title').strip()
-    watched_status = request.form.get('watched')
+    """Inserts a new movie into the database."""
+    title = request.form.get('title', '').strip()
+    watched_status = request.form.get('watched', 'No')
     
     if title:
-        movies = load_movies()
-        movies.append({"title": title, "watched": watched_status})
-        save_movies(movies)
+        conn = get_db_connection()
+        try:
+            conn.execute("INSERT INTO movies (title, watched) VALUES (?, ?)", (title, watched_status))
+            conn.commit()
+        except sqlite3.IntegrityError:
+            # This triggers automatically if the title already exists (due to the UNIQUE constraint)
+            pass 
+        conn.close()
         
     return redirect(url_for('index'))
 
 @app.route('/delete/<int:movie_id>', methods=['POST'])
 def delete_movie(movie_id):
-    """Deletes a movie based on its position in the list."""
-    movies = load_movies()
-    if 0 <= movie_id < len(movies):
-        movies.pop(movie_id)
-        save_movies(movies)
+    """Deletes a movie by its unique database ID."""
+    conn = get_db_connection()
+    conn.execute("DELETE FROM movies WHERE id = ?", (movie_id,))
+    conn.commit()
+    conn.close()
     return redirect(url_for('index'))
 
 @app.route('/toggle/<int:movie_id>', methods=['POST'])
 def toggle_movie(movie_id):
-    """Switches the watched status between Yes and No."""
-    movies = load_movies()
-    if 0 <= movie_id < len(movies):
-        current_status = movies[movie_id]["watched"]
-        movies[movie_id]["watched"] = "No" if current_status == "Yes" else "Yes"
-        save_movies(movies)
+    """Updates the watched status in the database."""
+    conn = get_db_connection()
+    movie = conn.execute("SELECT watched FROM movies WHERE id = ?", (movie_id,)).fetchone()
+    
+    if movie:
+        new_status = "No" if movie["watched"] == "Yes" else "Yes"
+        conn.execute("UPDATE movies SET watched = ? WHERE id = ?", (new_status, movie_id))
+        conn.commit()
+        
+    conn.close()
     return redirect(url_for('index'))
 
 if __name__ == "__main__":
+    init_db() # Ensure the database and tables are created before the server starts
     app.run(debug=True, use_reloader=False)
