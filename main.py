@@ -8,11 +8,11 @@ DB_NAME = "movies.db"
 def init_db():
     """Creates the database and table if they don't exist."""
     conn = sqlite3.connect(DB_NAME)
-    # The UNIQUE constraint on 'title' automatically prevents duplicates
+    # Added COLLATE NOCASE to prevent case-sensitive duplicates (e.g., "batman" vs "Batman")
     conn.execute('''
         CREATE TABLE IF NOT EXISTS movies (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL UNIQUE,
+            title TEXT NOT NULL UNIQUE COLLATE NOCASE,
             watched TEXT NOT NULL
         )
     ''')
