@@ -1,4 +1,4 @@
-readme_content = """# 🎬 Movie Watchlist Manager
+# 🎬 Movie Watchlist Manager
 
 A full-stack web application designed to track, filter, and manage a personal movie backlog, utilizing Python, Flask, and SQLite.
 
